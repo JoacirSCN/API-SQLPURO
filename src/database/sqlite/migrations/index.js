@@ -1,15 +1,20 @@
 const sqliteConnection = require('../../sqlite'); 
 const createUsers = require('./createUsers');
+const createNotes  = require('./createNotes');
+/* const createTags = require('./createTags'); */
+/* const createLinks = require('./createLinks'); */
 
 async function migrationsRun() {
-  // Schemas vai receber todas as migrations e vai juntar elas
-  const schemas = [
-    createUsers
-  ].join('');
-
-  sqliteConnection()
-    .then( (db) => {db.exec(schemas)})
-    .catch( (error) => console.error(error) );
+  const database = await sqliteConnection();
+  
+  try {
+    await database.exec(createUsers);
+    await database.exec(createNotes);
+/*     await database.exec(createTags);
+    await database.exec(createLinks); */
+  } catch(err) {
+    console.log(err)
+  }
 }
 
 module.exports = migrationsRun;
