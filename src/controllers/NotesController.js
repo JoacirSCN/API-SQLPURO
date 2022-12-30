@@ -65,20 +65,37 @@ class NotesController {
 
     if (tags) {
       const filterTags = tags.split(",").map((tag) => tag.trim());
-      
-      notes = await db.all(`SELECT * FROM tags WHERE name IN ('${filterTags}')`)
+
+      notes = await db.all(`
+        SELECT notes.id, notes.title, notes.user_id
+        FROM tags 
+        INNER JOIN notes
+        ON tags.note_id = notes.id
+        WHERE name IN ('${filterTags}')
+        AND tags.user_id = '${user_id}'
+        AND notes.title LIKE '%${title}'
+        ORDER BY notes.title
+      `);
+
     } else {
-      notes = await db.all(
-        `SELECT * FROM notes WHERE user_id = '${user_id}' 
-          INTERSECT
-        SELECT * FROM notes WHERE title LIKE '%${title}%'
-        ORDER BY title`
-      );
+      notes = await db.all(`
+        SELECT * FROM notes WHERE user_id = '${user_id}' 
+        AND title LIKE '%${title}%'
+        ORDER BY title
+      `);
     }
 
-    
+    const userTags = await db.all(`SELECT * FROM tags WHERE user_id = ${user_id}`);
+    const notesWithTags = notes.map(note => {
+      const noteTags = userTags.filter(tag => tag.note_id === note.id);
 
-    return response.json(notes)
+      return {
+        ...note,
+        tags: noteTags
+      }
+    })
+
+    return response.json(notesWithTags)
   }
 }
 
