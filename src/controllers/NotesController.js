@@ -53,7 +53,7 @@ class NotesController {
     const { id } = request.params;
     const db = sqliteConnection();
 
-    await (await db).run('DELETE FROM notes WHERE id = (?)', [id])
+    await db.run('DELETE FROM notes WHERE id = (?)', [id])
 
     return response.json()
   };
